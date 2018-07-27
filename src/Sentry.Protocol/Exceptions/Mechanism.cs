@@ -61,11 +61,13 @@ namespace Sentry.Protocol
         /// For proprietary or vendor-specific error codes, adding these values will give additional information to the user.
         /// </remarks>
         /// <see href="https://docs.sentry.io/clientdev/interfaces/mechanism/#meta-information"/>
+        [DataMember(Name = "meta", EmitDefaultValue = false)]
         public IDictionary<string, object> Meta => InternalMeta ?? (InternalMeta = new Dictionary<string, object>());
 
         /// <summary>
         /// Arbitrary extra data that might help the user understand the error thrown by this mechanism
         /// </summary>
+        [DataMember(Name = "data", EmitDefaultValue = false)]
         public IDictionary<string, object> Data => InternalData ?? (InternalData = new Dictionary<string, object>());
     }
 }

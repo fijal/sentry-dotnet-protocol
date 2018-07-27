@@ -84,7 +84,7 @@ namespace Sentry.Protocol
             string type,
             IReadOnlyDictionary<string, string> data = null,
             string category = null,
-            BreadcrumbLevel level = default)
+            BreadcrumbLevel level = 0)
         : this(
             null,
             message,
@@ -103,7 +103,7 @@ namespace Sentry.Protocol
             string type = null,
             IReadOnlyDictionary<string, string> data = null,
             string category = null,
-            BreadcrumbLevel level = default)
+            BreadcrumbLevel level = 0)
         {
             Timestamp = timestamp ?? DateTimeOffset.UtcNow;
             Message = message;

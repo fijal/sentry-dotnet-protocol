@@ -21,6 +21,9 @@ namespace Sentry.Protocol
         /// Creates an instance from the specified <see cref="IEnumerable{T}"/>
         /// </summary>
         /// <param name="values"></param>
-        public SentryValues(IEnumerable<T> values) => Values = values ?? Enumerable.Empty<T>();
+        public SentryValues(IEnumerable<T> values)
+        {
+            Values = values ?? Enumerable.Empty<T>();
+        }
     }
 }

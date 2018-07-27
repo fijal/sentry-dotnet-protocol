@@ -26,15 +26,15 @@ namespace Sentry
                     string message,
                     string category,
                     string type,
-                    (string, string)? dataPair = null,
-                    BreadcrumbLevel level = default)
+                    Tuple<string, string> dataPair = null,
+                    BreadcrumbLevel level = 0)
         {
             Dictionary<string, string> data = null;
             if (dataPair != null)
             {
                 data = new Dictionary<string, string>
                 {
-                    {dataPair.Value.Item1, dataPair.Value.Item2}
+                    {dataPair.Item1, dataPair.Item2}
                 };
             }
 
@@ -57,20 +57,14 @@ namespace Sentry
         /// <param name="data">The data.</param>
         /// <param name="level">The level.</param>
         public static void AddBreadcrumb(
-            this Scope scope,
-            string message,
-            string category = null,
-            string type = null,
-            Dictionary<string, string> data = null,
-            BreadcrumbLevel level = default)
+                    this Scope scope,
+                    string message,
+                    string category = null,
+                    string type = null,
+                    Dictionary<string, string> data = null,
+                    BreadcrumbLevel level = 0)
         {
-            scope.AddBreadcrumb(
-                timestamp: null,
-                message: message,
-                category: category,
-                type: type,
-                data: data,
-                level: level);
+            scope.AddBreadcrumb(null, message, category, type, null, level);
         }
 
         /// <summary>
@@ -93,7 +87,7 @@ namespace Sentry
             string category = null,
             string type = null,
             IReadOnlyDictionary<string, string> data = null,
-            BreadcrumbLevel level = default)
+            BreadcrumbLevel level = 0)
         {
             scope.AddBreadcrumb(new Breadcrumb(
                 timestamp: timestamp,
@@ -117,7 +111,8 @@ namespace Sentry
                                                 ?? Constants.DefaultMaxBreadcrumbs) + 1;
             if (overflow > 0)
             {
-                breadcrumbs.TryDequeue(out _);
+                Breadcrumb result;
+                breadcrumbs.TryDequeue(out result);
             }
 
             breadcrumbs.Enqueue(breadcrumb);
@@ -183,8 +178,11 @@ namespace Sentry
         /// <param name="scope">The scope.</param>
         /// <param name="key"></param>
         public static void UnsetTag(this Scope scope, string key)
-            => scope.InternalTags?.TryRemove(key, out _);
-
+        {
+            string result;
+            scope.InternalTags?.TryRemove(key, out result);
+        }
+            
         /// <summary>
         /// Applies the data from one scope to the other while
         /// </summary>
@@ -267,35 +265,39 @@ namespace Sentry
         /// <param name="state">The state object to apply.</param>
         public static void Apply(this Scope scope, object state)
         {
-            switch (state)
+            if (state is string)
             {
-                case string scopeString:
-                    // TODO: find unique key to support multiple single-string scopes
-                    scope.SetTag("scope", scopeString);
-                    break;
-                case IEnumerable<KeyValuePair<string, string>> keyValStringString:
-                    scope.SetTags(keyValStringString
+                var scopeString = (string)state;
+                // TODO: find unique key to support multiple single-string scopes
+                scope.SetTag("scope", scopeString);
+            }
+            else if (state is IEnumerable<KeyValuePair<string, string>>)
+            {
+                var keyValStringString = (IEnumerable<KeyValuePair<string, string>>)state;
+                scope.SetTags(keyValStringString
                         .Where(kv => !string.IsNullOrEmpty(kv.Value)));
-                    break;
-                case IEnumerable<KeyValuePair<string, object>> keyValStringObject:
-                    {
-                        scope.SetTags(keyValStringObject
-                            .Select(k => new KeyValuePair<string, string>(
-                                k.Key,
-                                k.Value?.ToString()))
-                            .Where(kv => !string.IsNullOrEmpty(kv.Value)));
+            }
+            else if (state is IEnumerable<KeyValuePair<string, object>>)
+            {
+                var keyValStringObject = (IEnumerable<KeyValuePair<string, object>>)state;
+                scope.SetTags(keyValStringObject
+                    .Select(k => new KeyValuePair<string, string>(
+                        k.Key,
+                        k.Value?.ToString()))
+                    .Where(kv => !string.IsNullOrEmpty(kv.Value)));
 
-                        break;
-                    }
-                case ValueTuple<string, string> tupleStringString:
-                    if (!string.IsNullOrEmpty(tupleStringString.Item2))
-                    {
-                        scope.SetTag(tupleStringString.Item1, tupleStringString.Item2);
-                    }
-                    break;
-                default:
-                    scope.SetExtra("state", state);
-                    break;
+            }
+            else if (state is ValueTuple<string, string>)
+            {
+                var tupleStringString = (ValueTuple<string, string>)state;
+                if (!string.IsNullOrEmpty(tupleStringString.Item2))
+                {
+                    scope.SetTag(tupleStringString.Item1, tupleStringString.Item2);
+                }
+            }
+            else
+            {
+                scope.SetExtra("state", state);
             }
         }
     }

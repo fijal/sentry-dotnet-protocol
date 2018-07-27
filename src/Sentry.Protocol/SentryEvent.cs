@@ -121,9 +121,9 @@ namespace Sentry
         internal SentryEvent(
             Exception exception = null,
             DateTimeOffset? timestamp = null,
-            Guid id = default)
+            Guid id = new Guid())
         {
-            EventId = id == default ? Guid.NewGuid() : id;
+            EventId = id == Guid.Empty ? Guid.NewGuid() : id;
 
             Timestamp = timestamp ?? DateTimeOffset.UtcNow;
             Exception = exception;

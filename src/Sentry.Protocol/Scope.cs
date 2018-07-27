@@ -151,8 +151,10 @@ namespace Sentry.Protocol
         /// Creates a scope with the specified options
         /// </summary>
         /// <param name="options"></param>
-        public Scope(IScopeOptions options) => Options = options;
-
+        public Scope(IScopeOptions options) 
+        {
+            Options = options;   
+        }
         /// <summary>
         /// Creates a new scope with default options
         /// </summary>
